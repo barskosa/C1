@@ -26,7 +26,8 @@ function limpar(tex) {
     .replace(/−/g, '-')
     .replace(/\\(?:left|right)\s*\./g, ' ')
     .replace(/\\(?:left|right|bigl|bigr|Bigl|Bigr|biggl|biggr|Biggl|Biggr|bigg|Bigg|big|Big|displaystyle|textstyle|limits|nolimits)(?![a-zA-Z])/g, ' ')
-    .replace(/\\(?:text|mathrm|textit|textbf)\s*\{[^{}]*\}/g, ' ')
+    // unidades: o expoente de uma unidade (cm^3, m^2) sai junto com ela
+    .replace(/\\(?:text|mathrm|textit|textbf)\s*\{[^{}]*\}(?:\s*\^\s*(?:\d|\{[^{}]*\}))?/g, ' ')
     .replace(/\\operatorname\s*\{\s*([a-zA-Z]+)\s*\}/g, '\\$1 ')
     .replace(/\\[dt]frac(?![a-zA-Z])/g, '\\frac')
     .replace(/\\(?:quad|qquad)(?![a-zA-Z])/g, ' ')
@@ -300,8 +301,8 @@ export function segmentos(tex) {
     if (c === '{') profundidade += 1;
     if (c === '}') profundidade -= 1;
     if (profundidade === 0) {
-      if (c === '=') { partes.push(atual); atual = ''; continue; }
-      const separador = /^\\(?:approx|simeq|Rightarrow|Longrightarrow|implies|iff)(?![a-zA-Z])/.exec(fonte.slice(i));
+      if (c === '=' || c === '<' || c === '>') { partes.push(atual); atual = ''; continue; }
+      const separador = /^\\(?:approx|simeq|Rightarrow|Longrightarrow|Longleftrightarrow|implies|iff|leq|geq|le|ge|neq|ne|lt|gt)(?![a-zA-Z])/.exec(fonte.slice(i));
       if (separador) { partes.push(atual); atual = ''; i += separador[0].length - 1; continue; }
     }
     atual += c;
