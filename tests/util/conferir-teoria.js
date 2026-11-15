@@ -181,7 +181,7 @@ export function conferirSecao(modulo) {
             relatorio.falhas.push(`Exercício ${i + 1}: a fórmula conferida não aparece na resposta exibida (${ref.tex})`);
             continue;
           }
-          for (const r of conferirPasso({ seg: 'tudo', ...ref }, ref.tex)) {
+          for (const r of conferirPasso({ ...ref }, ref.tex)) {
             relatorio.verificacoes += 1;
             if (!r.ok) relatorio.falhas.push(`Exercício ${i + 1} [${ref.tex}]: ${r.motivo}`);
           }
