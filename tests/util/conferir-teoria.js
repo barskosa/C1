@@ -49,7 +49,7 @@ function conferirTrecho(ref, trechoTex) {
   const expr = texParaMath(trechoTex);
   if (ref.derivada != null) {
     const alvo = derivada(ref.derivada, ref.var ?? 'x', ref.ordem ?? 1);
-    return compararFuncoes(expr, alvo, { vars: [ref.var ?? 'x'], dom: ref.dom, tol: ref.tol });
+    return compararFuncoes(expr, alvo, { vars: [ref.var ?? 'x'], dom: ref.dom, tol: ref.tol, fixos: ref.fixos });
   }
   if (ref.igual != null) {
     return compararFuncoes(expr, ref.igual, { vars: ref.vars ?? [ref.var ?? 'x'], dom: ref.dom, tol: ref.tol, fixos: ref.fixos });
