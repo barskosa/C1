@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Derivadas · Cálculo 1 — teoria passo a passo e gerador de questões</title>
+  <meta name="description" content="Curso completo de derivadas de Cálculo 1: teoria com exemplos resolvidos passo a passo, gráficos interativos e um gerador de questões com correção automática e resolução explicada.">
+  <meta name="color-scheme" content="light dark">
+  <link rel="icon" href="img/favicon.svg" type="image/svg+xml">
+  <script>
+    (function () {
+      var tema;
+      try { tema = JSON.parse(localStorage.getItem('derivadas:tema')); } catch (e) { tema = null; }
+      if (tema !== 'light' && tema !== 'dark') {
+        tema = window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+      document.documentElement.dataset.theme = tema;
+    })();
+  </script>
+  <link rel="stylesheet" href="vendor/katex/katex.min.css">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/print.css" media="print">
+  <script defer src="vendor/katex/katex.min.js"></script>
+  <script type="module" src="js/main.js"></script>
+</head>
+<body data-pagina="inicio" class="pagina-simples">
+  <a class="pular" href="#conteudo">Pular para o conteúdo</a>
+  <div class="barra-leitura" role="progressbar" aria-label="Progresso de leitura da página" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+    <div class="barra-leitura__fill" id="barra-leitura"></div>
+  </div>
+
+  <header class="topo">
+    <button type="button" class="botao-icone" id="btn-menu" aria-label="Abrir menu" aria-expanded="false" aria-controls="menu-lateral">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+    <a class="marca" href="index.html" aria-label="Derivadas, Cálculo 1 — página inicial">
+      <span class="marca__logo" aria-hidden="true">f′</span>
+      <span class="marca__texto">Derivadas <small>Cálculo 1</small></span>
+    </a>
+    <nav class="topo__nav" aria-label="Principal">
+      <a href="index.html">Início</a>
+      <a href="teoria.html">Teoria</a>
+      <a href="praticar.html">Praticar</a>
+      <a href="teoria.html?s=tabela-resumo">Colinha</a>
+    </nav>
+    <button type="button" class="botao-icone" id="btn-tema" aria-label="Alternar modo claro/escuro" aria-pressed="false">
+      <svg class="icone-lua" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/></svg>
+      <svg class="icone-sol" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+    </button>
+  </header>
+
+  <aside class="lateral" id="menu-lateral" aria-label="Menu de navegação"></aside>
+  <div class="fundo-menu" id="fundo-menu"></div>
+
+  <main id="conteudo" class="conteudo-central" tabindex="-1">
+    <section class="heroi" aria-labelledby="titulo-inicio">
+      <div>
+        <p class="heroi__sobre">Cálculo 1 · 1º período</p>
+        <h1 id="titulo-inicio">Derivadas, do limite à otimização</h1>
+        <p class="heroi__lide">
+          Todo o conteúdo de derivadas em um só lugar: a ideia por trás de cada regra, exemplos resolvidos
+          passo a passo, gráficos interativos e um gerador de questões que corrige a sua resposta e só
+          mostra a resolução depois que você tenta.
+        </p>
+        <div class="heroi__acoes">
+          <a class="btn btn--primario" id="btn-comecar" href="teoria.html?s=motivacao">Começar pela seção 1</a>
+          <a class="btn" href="praticar.html">Praticar agora</a>
+          <a class="btn btn--sutil" href="teoria.html?s=tabela-resumo">Ver a colinha</a>
+        </div>
+      </div>
+      <figure class="heroi__painel">
+        <div id="heroi-grafico"></div>
+        <figcaption>
+          <strong>A derivada é a inclinação da reta tangente.</strong>
+          Arraste o ponto sobre a curva. <span id="heroi-leitura" aria-live="off"></span>
+        </figcaption>
+      </figure>
+    </section>
+
+    <section class="resumo-progresso" id="resumo-progresso" aria-label="Seu progresso"></section>
+
+    <div class="trilha" id="trilha">
+      <noscript><p class="aviso-erro">Este site precisa de JavaScript para montar a trilha de estudo, as fórmulas e o gerador de questões.</p></noscript>
+    </div>
+
+    <section class="faixa-praticar" aria-labelledby="titulo-faixa">
+      <div>
+        <h2 id="titulo-faixa">Gerador de questões</h2>
+        <p>
+          Questões novas a cada clique, em três níveis de dificuldade. Você digita a resposta, o site confere se ela
+          é equivalente à correta (mesmo escrita de outro jeito) e a resolução passo a passo só aparece depois da sua tentativa.
+        </p>
+      </div>
+      <a class="btn btn--primario" href="praticar.html">Abrir o gerador</a>
+    </section>
+  </main>
+
+  <footer class="rodape">
+    <p>Derivadas · Cálculo 1 — material de estudo livre. Fórmulas por <a href="https://katex.org/">KaTeX</a>; verificação de respostas com <a href="https://mathjs.org/">math.js</a>.</p>
+  </footer>
+</body>
+</html>

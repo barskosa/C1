@@ -1,0 +1,19 @@
+{
+  "name": "derivadas-calculo-1",
+  "version": "1.0.0",
+  "description": "Site educacional de derivadas (Cálculo 1): teoria completa com exemplos passo a passo e gerador de questões com resolução.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "npx --yes serve -l 8080 .",
+    "test": "node --test",
+    "conferir": "node scripts/conferir-exemplos.mjs",
+    "e2e": "node scripts/e2e.mjs",
+    "vendor": "node scripts/vendor.mjs"
+  },
+  "devDependencies": {
+    "katex": "^0.19.1",
+    "mathjs": "^15.2.0",
+    "puppeteer-core": "^25.17.0"
+  }
+}
