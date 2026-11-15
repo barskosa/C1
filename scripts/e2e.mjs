@@ -1,6 +1,7 @@
 // Teste de fumaça no navegador: serve o site localmente, abre cada página em um
 // Chrome/Edge headless e falha se houver qualquer erro no console, exceção de
-// script, requisição que falhou ou fórmula que o KaTeX não conseguiu renderizar.
+// script, requisição que falhou, fórmula que o KaTeX não conseguiu renderizar
+// ou rolagem horizontal da página.
 //
 // Uso:
 //   npm run e2e                 abre todas as páginas e seções
@@ -9,56 +10,17 @@
 //
 // Requer um Chrome ou Edge instalado (ou a variável CHROME_PATH).
 
-import http from 'node:http';
-import { readFile, mkdir } from 'node:fs/promises';
-import { existsSync } from 'node:fs';
+import { mkdir } from 'node:fs/promises';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import puppeteer from 'puppeteer-core';
 import { SECOES } from '../js/conteudo/indice.js';
+import { RAIZ, iniciarServidor, localizarNavegador } from './servidor.mjs';
 
-const raiz = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const args = process.argv.slice(2);
 const comCapturas = args.includes('--capturas');
+const paginaInteira = args.includes('--inteira');
 const filtro = args.includes('--so') ? args[args.indexOf('--so') + 1] : null;
-
-const TIPOS = {
-  '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8',
-  '.css': 'text/css; charset=utf-8', '.json': 'application/json; charset=utf-8', '.svg': 'image/svg+xml',
-  '.woff2': 'font/woff2', '.png': 'image/png', '.ico': 'image/x-icon', '.txt': 'text/plain; charset=utf-8',
-};
-
-function localizarNavegador() {
-  const candidatos = [
-    process.env.CHROME_PATH,
-    'C:/Program Files/Google/Chrome/Application/chrome.exe',
-    'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe',
-    'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',
-    'C:/Program Files/Microsoft/Edge/Application/msedge.exe',
-    '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
-    '/usr/bin/google-chrome', '/usr/bin/chromium', '/usr/bin/chromium-browser',
-  ].filter(Boolean);
-  return candidatos.find((c) => existsSync(c));
-}
-
-function iniciarServidor() {
-  const servidor = http.createServer(async (req, res) => {
-    try {
-      const url = new URL(req.url, 'http://localhost');
-      let caminho = decodeURIComponent(url.pathname);
-      if (caminho.endsWith('/')) caminho += 'index.html';
-      const arquivo = path.join(raiz, caminho);
-      if (!arquivo.startsWith(raiz)) throw new Error('fora da raiz');
-      const dados = await readFile(arquivo);
-      res.writeHead(200, { 'content-type': TIPOS[path.extname(arquivo)] ?? 'application/octet-stream', 'cache-control': 'no-store' });
-      res.end(dados);
-    } catch {
-      res.writeHead(404, { 'content-type': 'text/plain; charset=utf-8' });
-      res.end('Não encontrado');
-    }
-  });
-  return new Promise((resolve) => servidor.listen(0, '127.0.0.1', () => resolve(servidor)));
-}
+const espera = (ms) => new Promise((r) => setTimeout(r, ms));
 
 const executavel = localizarNavegador();
 if (!executavel) {
@@ -73,11 +35,11 @@ const navegador = await puppeteer.launch({ executablePath: executavel, headless:
 const paginas = [
   { nome: 'inicio', url: '/index.html' },
   ...SECOES.map((s) => ({ nome: `teoria-${s.num.replace('.', '_')}-${s.id}`, url: `/teoria.html?s=${s.id}`, teoria: true })),
-  { nome: 'praticar', url: '/praticar.html' },
+  { nome: 'praticar', url: '/praticar.html', praticar: true },
 ].filter((p) => !filtro || p.url.includes(filtro) || p.nome.includes(filtro));
 
 const problemas = [];
-if (comCapturas) await mkdir(path.join(raiz, '.e2e'), { recursive: true });
+if (comCapturas) await mkdir(path.join(RAIZ, '.e2e'), { recursive: true });
 
 for (const alvo of paginas) {
   const pagina = await navegador.newPage();
@@ -100,32 +62,48 @@ for (const alvo of paginas) {
       }
       for (const detalhe of document.querySelectorAll('details')) detalhe.open = true;
     });
+    // Mexe em todos os controles dos gráficos interativos.
+    await espera(300);
+    await pagina.evaluate(() => {
+      for (const controle of document.querySelectorAll('.painel-widget input[type="range"]')) {
+        for (const fracao of [0, 1, 0.5]) {
+          controle.value = String(Number(controle.min) + fracao * (Number(controle.max) - Number(controle.min)));
+          controle.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+      }
+      for (const seletor of document.querySelectorAll('.painel-widget select')) {
+        for (const opcao of [...seletor.options].reverse()) {
+          seletor.value = opcao.value;
+          seletor.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      }
+      for (const caixa of document.querySelectorAll('.painel-widget input[type="checkbox"]')) caixa.click();
+    });
   }
-  await new Promise((r) => setTimeout(r, 250));
+  await espera(250);
 
   const diagnostico = await pagina.evaluate(() => ({
     formulasComErro: document.querySelectorAll('.erro-tex, .katex-error').length,
     avisos: [...document.querySelectorAll('.aviso-erro')].map((n) => n.textContent.trim()).filter((t) => !t.includes('JavaScript')),
     larguraExcedente: document.documentElement.scrollWidth - document.documentElement.clientWidth,
     formulas: document.querySelectorAll('.katex').length,
-    titulo: document.title,
+    graficos: document.querySelectorAll('svg.grafico').length,
   }));
   if (diagnostico.formulasComErro) erros.push(`${diagnostico.formulasComErro} fórmula(s) com erro de KaTeX`);
   for (const aviso of diagnostico.avisos) erros.push(`aviso de erro na página: ${aviso}`);
   if (diagnostico.larguraExcedente > 2) erros.push(`rolagem horizontal na página (${diagnostico.larguraExcedente}px a mais)`);
 
-  if (comCapturas) {
-    await pagina.screenshot({ path: path.join(raiz, '.e2e', `${alvo.nome}-claro.png`), fullPage: false });
-    await pagina.setViewport({ width: 390, height: 800, deviceScaleFactor: 2 });
-    await pagina.evaluate(() => { document.documentElement.dataset.theme = 'dark'; });
-    await new Promise((r) => setTimeout(r, 200));
-    const excedente = await pagina.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
-    if (excedente > 2) erros.push(`rolagem horizontal no celular (${excedente}px a mais)`);
-    await pagina.screenshot({ path: path.join(raiz, '.e2e', `${alvo.nome}-celular-escuro.png`), fullPage: false });
-  }
+  // Mesma página em tela de celular e tema escuro.
+  if (comCapturas) await pagina.screenshot({ path: path.join(RAIZ, '.e2e', `${alvo.nome}-claro.png`), fullPage: paginaInteira });
+  await pagina.setViewport({ width: 390, height: 800, deviceScaleFactor: 2 });
+  await pagina.evaluate(() => { document.documentElement.dataset.theme = 'dark'; });
+  await espera(250);
+  const excedente = await pagina.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  if (excedente > 2) erros.push(`rolagem horizontal no celular (${excedente}px a mais)`);
+  if (comCapturas) await pagina.screenshot({ path: path.join(RAIZ, '.e2e', `${alvo.nome}-celular-escuro.png`), fullPage: paginaInteira });
 
   const estado = erros.length ? 'FALHOU' : 'ok';
-  console.log(`${estado.padEnd(6)} ${alvo.url.padEnd(48)} ${String(diagnostico.formulas).padStart(4)} fórmulas`);
+  console.log(`${estado.padEnd(6)} ${alvo.url.padEnd(48)} ${String(diagnostico.formulas).padStart(4)} fórmulas  ${String(diagnostico.graficos).padStart(2)} gráficos`);
   for (const erro of erros) console.log(`         - ${erro}`);
   if (erros.length) problemas.push({ alvo, erros });
   await pagina.close();
@@ -138,4 +116,4 @@ if (problemas.length) {
   console.error(`\n${problemas.length} página(s) com problemas.`);
   process.exit(1);
 }
-console.log(`\nTodas as ${paginas.length} páginas abriram sem erros no console.`);
+console.log(`\nTodas as ${paginas.length} páginas abriram sem erros no console (computador e celular).`);

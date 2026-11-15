@@ -5,7 +5,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "npx --yes serve -l 8080 .",
+    "start": "node scripts/servidor.mjs 8080",
     "test": "node --test",
     "conferir": "node scripts/conferir-exemplos.mjs",
     "e2e": "node scripts/e2e.mjs",
