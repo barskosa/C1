@@ -578,3 +578,9 @@ details.porque > *:not(summary) { margin-top: 0.6em; }
   .faixa-praticar { grid-template-columns: 1fr; }
   .figura__corpo { padding: 0.4rem; }
 }
+
+/* ---------- Colinha (seção 15) ---------- */
+.artigo--imprimivel .prosa { display: grid; grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr)); gap: 1.25rem; align-items: start; }
+.artigo--imprimivel .prosa > * { margin-top: 0; }
+.colinha__bloco h3 { margin: 0 0 0.5rem; font-size: 1.1em; }
+.colinha__bloco .tabela td { padding: 0.45rem 0.7rem; }

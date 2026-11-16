@@ -37,6 +37,6 @@ a { color: inherit; text-decoration: none; }
 details.resposta > .resposta__corpo, details.porque > * { display: block; }
 
 /* A colinha usa a página inteira em colunas. */
-.artigo--imprimivel .colinha { column-count: 2; column-gap: 8mm; }
+.artigo--imprimivel .prosa { display: block; column-count: 2; column-gap: 8mm; }
 .artigo--imprimivel .colinha__bloco { margin: 0 0 4mm; }
 .artigo--imprimivel .katex { font-size: 1em; }
