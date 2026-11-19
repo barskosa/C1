@@ -33,7 +33,7 @@ export function avaliar(expr, escopo = {}) {
 /** Derivada simbólica (math.js) de ordem n, como nó. */
 export function derivada(expr, variavel = 'x', ordem = 1) {
   let no = typeof expr === 'string' ? math.parse(expr) : expr;
-  for (let i = 0; i < ordem; i++) no = math.derivative(no, variavel);
+  for (let i = 0; i < ordem; i++) no = math.derivative(no, variavel, { simplify: false });
   return no;
 }
 
